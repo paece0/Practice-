@@ -5,7 +5,6 @@ import torch
 st.set_page_config(page_title="個性化聊天 AI", page_icon="🧠")
 st.title("🧠 個性化聊天 AI")
 
-# 載入模型（只執行一次）
 @st.cache_resource
 def load_model():
     model_name = "distilgpt2"
@@ -15,33 +14,27 @@ def load_model():
 
 tokenizer, model = load_model()
 
-# 初始化狀態
 if "persona" not in st.session_state:
     st.session_state.persona = ""
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# 個性輸入
 if not st.session_state.persona:
     st.session_state.persona = st.text_input("請先輸入 AI 的個性（例如：風趣幽默、冷靜分析）")
     if not st.session_state.persona:
         st.stop()
     st.success("✅ 個性設定成功！開始對話吧")
 
-# 顯示歷史對話（含頭像）
 for msg in st.session_state.messages:
     with st.chat_message(msg["role"], avatar="🧑" if msg["role"] == "user" else "🤖"):
         st.markdown(msg["content"])
 
-# 使用 chat_input 輸入
 user_input = st.chat_input("你想說什麼？")
 if user_input:
-    # 顯示使用者輸入
     st.session_state.messages.append({"role": "user", "content": user_input})
     with st.chat_message("user", avatar="🧑"):
         st.markdown(user_input)
 
-    # 強化 Prompt：避免亂回、明確角色定位
     full_prompt = (
         f"你是一個{st.session_state.persona}風格的聊天 AI。請用自然、親切的方式回應使用者，"
         f"回答要簡單、貼近話題，不要加入無關的資訊或虛構故事。\n\n"
@@ -50,7 +43,6 @@ if user_input:
     )
     input_ids = tokenizer.encode(full_prompt, return_tensors="pt")
 
-    # 生成回應
     output_ids = model.generate(
         input_ids,
         max_length=150,
@@ -62,12 +54,10 @@ if user_input:
     )
     response = tokenizer.decode(output_ids[:, input_ids.shape[-1]:][0], skip_special_tokens=True)
 
-    # 顯示 AI 回應
     st.session_state.messages.append({"role": "assistant", "content": response})
     with st.chat_message("assistant", avatar="🤖"):
         st.markdown(response)
 
-# 重新開始按鈕
 if st.button("🔄 重新開始對話"):
     st.session_state.messages = []
     st.session_state.persona = ""
