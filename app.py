@@ -28,7 +28,7 @@ if not st.session_state.persona:
         st.stop()
     st.success("✅ 個性設定成功！開始對話吧")
 
-# 顯示歷史對話（有頭像）
+# 顯示歷史對話（含頭像）
 for msg in st.session_state.messages:
     with st.chat_message(msg["role"], avatar="🧑" if msg["role"] == "user" else "🤖"):
         st.markdown(msg["content"])
@@ -36,23 +36,24 @@ for msg in st.session_state.messages:
 # 使用 chat_input 輸入
 user_input = st.chat_input("你想說什麼？")
 if user_input:
-    # 顯示使用者訊息
+    # 顯示使用者輸入
     st.session_state.messages.append({"role": "user", "content": user_input})
     with st.chat_message("user", avatar="🧑"):
         st.markdown(user_input)
 
-    # 製作完整 prompt，加強指令避免跑題
+    # 強化 Prompt：避免亂回、明確角色定位
     full_prompt = (
-        f"你是一個{st.session_state.persona}風格的 AI，請針對使用者問題直接回應，避免離題或廢話。\n\n"
-        f"使用者問：「{user_input}」\n"
-        f"AI 回答："
+        f"你是一個{st.session_state.persona}風格的聊天 AI。請用自然、親切的方式回應使用者，"
+        f"回答要簡單、貼近話題，不要加入無關的資訊或虛構故事。\n\n"
+        f"使用者說：「{user_input}」\n"
+        f"AI 回應："
     )
     input_ids = tokenizer.encode(full_prompt, return_tensors="pt")
 
-    # 模型生成
+    # 生成回應
     output_ids = model.generate(
         input_ids,
-        max_length=256,
+        max_length=150,
         pad_token_id=tokenizer.eos_token_id,
         do_sample=True,
         top_k=50,
