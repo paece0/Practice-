@@ -1,4 +1,3 @@
 streamlit
 transformers
-torch==1.13.1+cpu
--f https://download.pytorch.org/whl/torch_stable.html
+torch
